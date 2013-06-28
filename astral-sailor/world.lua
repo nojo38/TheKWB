@@ -10,23 +10,23 @@ function world:init()
    --world boundaries
 
   self.right = {}
-  self.right.body = love.physics.newBody(self.world, self.dimx-1/2, self.dimy/2, "static")
+  self.right.body = love.physics.newBody(self.world, self.dimx+(1/2), self.dimy/2, "static")
   self.right.shape = love.physics.newRectangleShape(0, 0, 1, self.dimy)
   self.right.fixture = love.physics.newFixture(self.right.body, self.right.shape)
 
   self.left = {}
   self.left.body = love.physics.newBody(self.world, -1/2, self.dimy/2, "static")
-  self.left.shape = love.physics.newRectangleShape(0, 0, 10, self.dimy)
+  self.left.shape = love.physics.newRectangleShape(0, 0, 1, self.dimy)
   self.left.fixture = love.physics.newFixture(self.left.body, self.left.shape)
 
   self.top = {}
-  self.top.body = love.physics.newBody(self.world, self.dimx/2, self.dimy-1/2, "static")
-  self.top.shape = love.physics.newRectangleShape(0, 0, self.dimx, 10)
+  self.top.body = love.physics.newBody(self.world, self.dimx/2, -1/2, "static")
+  self.top.shape = love.physics.newRectangleShape(0, 0, self.dimx, 1)
   self.top.fixture = love.physics.newFixture(self.top.body, self.top.shape)
 
   self.bot = {}
-  self.bot.body = love.physics.newBody(self.world, self.dimx/2, -1/2, "static")
-  self.bot.shape = love.physics.newRectangleShape(0, 0, self.dimx, 10)
+  self.bot.body = love.physics.newBody(self.world, self.dimx/2, self.dimy+(1/2), "static")
+  self.bot.shape = love.physics.newRectangleShape(0, 0, self.dimx, 1)
   self.bot.fixture = love.physics.newFixture(self.bot.body, self.bot.shape)
 
   self.debug = true
