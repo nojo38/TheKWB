@@ -17,10 +17,11 @@ function asteroid:init()
   self.asteroids.a1.body:applyForce(math.random(-300,300),math.random(-300,300))
 --  self.asteroids.a1.body:applyForce(-100,-100)
 --   self.asteroids.a1.body:applyTorque(4000)
-   self.asteroids.a1.body:applyAngularImpulse(100)
+  self.asteroids.a1.body:applyAngularImpulse(100)
 --math.random(-200,200),math.random(-200,200))
 
-   self.debug = false
+  self.debug = false
+  self.scale = 1
 
 end
 

@@ -37,11 +37,14 @@ function laser:load()
    self.laserBurst:stop()
    table.insert(systems, self.laserBurst) -- unused
 
+   self.lasers = {}
+
    -- laser beam properties
    laserbeamimg = love.graphics.newImage("graphics/laser-beam.png")
    self.elapsed = 0.0
    self.laserScale = 1 -- unused
    self.laserSpeed = 300
+   self.physicsLaserSpeed = 50
    self.laserDuration = 5 -- seconds
    self.laserPosition = {0.0, 0.0}
    self.laserDirection = 0.0
@@ -49,7 +52,7 @@ function laser:load()
    self.laserDamage = 10 -- unused
 
    self.firing = false
-   self.debug = false
+   self.debug = true
  
 end
 
@@ -58,7 +61,7 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
    self.elapsed = 0.0
    -- offset to make come out of nose of ship
    -- hardcoding is bad, should get the value, here 20, from image table
-   local xoffset = 20*math.sin(rot)
+   local xoffset = 16*math.sin(rot)
    local yoffset = -(20*math.cos(rot)) -- notice the minus here
 		    
    self.laserBurst:setPosition(x+xoffset,
@@ -71,6 +74,19 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
    self.laserDirection = rot
    self.laserVelocity = {self.laserSpeed * math.sin(rot), 
 			 -(self.laserSpeed * math.cos(rot))}
+ 
+   -- an asteroid -- change to array later
+   local p = {}
+   p.body = love.physics.newBody(world.world, x+xoffset, y+yoffset, "dynamic")
+   p.shape = love.physics.newRectangleShape(0, 0, laserbeamimg:getWidth(), laserbeamimg:getHeight())
+   p.fixture = love.physics.newFixture(p.body, p.shape, 1)
+
+   p.body:applyForce(self.physicsLaserSpeed * math.sin(rot), 
+		     -(self.physicsLaserSpeed * math.cos(rot)))
+
+   p.fixture:setRestitution(0.5) -- bouncy
+
+   table.insert(self.lasers, p)
 
 end
 
@@ -112,6 +128,18 @@ function laser:draw()
 	 self.firing = false
       end
    end
+
+   if self.debug then
+      
+     for i=1,#self.lasers do 
+	love.graphics.polygon("fill", self.lasers[i].body:getWorldPoints(self.lasers[i].shape:getPoints()))
+     end
+  --   love.graphics.setColor(0, 0, 0)
+     print("# lasers: " .. #self.lasers)
+     print("l x,y: " .. self.laserPosition[1] .. " " .. self.laserPosition[2])
+--     print("l dir: " .. math.deg(self.laserDirection))
+--     print("l vel: " .. self.laserVelocity[1] .. " " .. self.laserVelocity[2])
+   end      
 
 end
 

@@ -7,11 +7,11 @@ function love.load()
    require "asteroid"
 
    -- start the bugship in the middle
-   bugship:init(400,300)
-   laser:load()
 
    world:init() -- initialize world
    asteroid:init()
+   bugship:init(400,300)
+   laser:load()
 
    bg = love.graphics.newImage("graphics/star-background.png")
    
