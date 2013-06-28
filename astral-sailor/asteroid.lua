@@ -14,8 +14,9 @@ function asteroid:init()
 
   self.asteroids.a1.fixture:setRestitution(0.9) --let the ball bounce
 
-  self.asteroids.a1.body:applyForce(math.random(-100,100),-300)
---   self.asteroids.a1.body:applyTorque(2000)
+--  self.asteroids.a1.body:applyForce(math.random(-100,100),-300)
+  self.asteroids.a1.body:applyForce(-400,-300)
+   self.asteroids.a1.body:applyTorque(2000)
 --   self.asteroids.a1.body:applyAngularImpulse(100)
 --math.random(-200,200),math.random(-200,200))
 
@@ -33,7 +34,9 @@ function asteroid:draw()
 		     self.asteroids.a1.body:getY()-8, -- image being rendered needs offset because for same reason in world, the body anchors at center
 		     math.rad(self.asteroids.a1.body:getAngle()) % 360) -- causes wild fluctuations
   
---		     self.asteroids.a1.body:getWorldPoints(self.asteroids.a1.shape:getPoints()))
+  if self.debug then 
+     love.graphics.circle("fill", self.asteroids.a1.body:getX(), self.asteroids.a1.body:getY(), self.asteroids.a1.shape:getRadius())
+  end
 
 end
 
