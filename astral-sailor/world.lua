@@ -29,7 +29,7 @@ function world:init()
   self.bot.shape = love.physics.newRectangleShape(0, 0, self.dimx, 1)
   self.bot.fixture = love.physics.newFixture(self.bot.body, self.bot.shape)
 
-  self.debug = true
+  self.debug = false
 
 end
 
@@ -45,7 +45,6 @@ function world:draw()
       print ("right xy: " .. (self.right.body:getX()) .. " " .. (self.right.body:getY()))
       print ("top xy: " .. (self.top.body:getX()) .. " " .. (self.top.body:getY()))
       print ("bot xy: " .. (self.bot.body:getX()) .. " " .. (self.bot.body:getY()))
-
       love.graphics.setColor(255, 255, 255)
 
    end

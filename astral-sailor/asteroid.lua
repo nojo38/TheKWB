@@ -14,9 +14,9 @@ function asteroid:init()
 
   self.asteroids.a1.fixture:setRestitution(0.9) --let the ball bounce
 
-  self.asteroids.a1.body:applyForce(math.random(-100,100),-300)
+  self.asteroids.a1.body:applyForce(math.random(-300,300),math.random(-300,300))
 --  self.asteroids.a1.body:applyForce(-100,-100)
-   self.asteroids.a1.body:applyTorque(4000)
+--   self.asteroids.a1.body:applyTorque(4000)
    self.asteroids.a1.body:applyAngularImpulse(100)
 --math.random(-200,200),math.random(-200,200))
 
@@ -26,19 +26,16 @@ end
 
 function asteroid:draw()
 
-   local rot = math.rad((self.asteroids.a1.body:getAngle()) % 360) -- according to doc this shouldn't be in rad
+   local rot = self.asteroids.a1.body:getAngle()
    local rad = self.asteroids.a1.shape:getRadius()
    local x = self.asteroids.a1.body:getX()
    local y = self.asteroids.a1.body:getY()
 
--- ASTEROID NOT BEING DRAWN CORRECTLY --- due to rotation, positive
-  love.graphics.draw(asteroidImg, -- problematic asteroid not being drawn right
-     -- due to: angles not correct, or boundaries not correct, etc. fix below
-     x, -- maybe working, but a hack
-     y, -- image being rendered needs offset because for same reason in world, the body anchors at center
+  love.graphics.draw(asteroidImg,
+     x, y,
      rot,
      self.scale, self.scale,
-     asteroidImg:getWidth()/2, asteroidImg:getHeight()/2) -- causes wild fluctuations
+     asteroidImg:getWidth()/2, asteroidImg:getHeight()/2)
   
   if self.debug then 
      local x2 = x + (math.cos (rot) * rad)
