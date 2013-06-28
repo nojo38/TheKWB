@@ -14,28 +14,38 @@ function asteroid:init()
 
   self.asteroids.a1.fixture:setRestitution(0.9) --let the ball bounce
 
---  self.asteroids.a1.body:applyForce(math.random(-100,100),-300)
-  self.asteroids.a1.body:applyForce(-400,-300)
-   self.asteroids.a1.body:applyTorque(2000)
---   self.asteroids.a1.body:applyAngularImpulse(100)
+  self.asteroids.a1.body:applyForce(math.random(-100,100),-300)
+--  self.asteroids.a1.body:applyForce(-100,-100)
+   self.asteroids.a1.body:applyTorque(4000)
+   self.asteroids.a1.body:applyAngularImpulse(100)
 --math.random(-200,200),math.random(-200,200))
 
-   self.debug = true
+   self.debug = false
 
 end
 
 function asteroid:draw()
 
+   local rot = math.rad((self.asteroids.a1.body:getAngle()) % 360) -- according to doc this shouldn't be in rad
+   local rad = self.asteroids.a1.shape:getRadius()
+   local x = self.asteroids.a1.body:getX()
+   local y = self.asteroids.a1.body:getY()
 
 -- ASTEROID NOT BEING DRAWN CORRECTLY --- due to rotation, positive
   love.graphics.draw(asteroidImg, -- problematic asteroid not being drawn right
      -- due to: angles not correct, or boundaries not correct, etc. fix below
-		     self.asteroids.a1.body:getX()+8, -- maybe working, but a hack
-		     self.asteroids.a1.body:getY()-8, -- image being rendered needs offset because for same reason in world, the body anchors at center
-		     math.rad(self.asteroids.a1.body:getAngle()) % 360) -- causes wild fluctuations
+     x, -- maybe working, but a hack
+     y, -- image being rendered needs offset because for same reason in world, the body anchors at center
+     rot,
+     self.scale, self.scale,
+     asteroidImg:getWidth()/2, asteroidImg:getHeight()/2) -- causes wild fluctuations
   
   if self.debug then 
-     love.graphics.circle("fill", self.asteroids.a1.body:getX(), self.asteroids.a1.body:getY(), self.asteroids.a1.shape:getRadius())
+     local x2 = x + (math.cos (rot) * rad)
+     local y2 = y + (math.sin (rot) * rad)
+     love.graphics.circle("fill", x, y, rad)
+     love.graphics.setColor(0, 0, 0)
+     love.graphics.line(x, y, x2, y2)
   end
 
 end
