@@ -13,6 +13,8 @@ current = 1
 
 function laser:load()
 
+   self.debug = false
+
 --   laserburstimg = love.graphics.newImage("graphics/laser-burst.png")
    laserburstimg = love.graphics.newImage("graphics/twin-part.png")
    -- laser burst: set bunch of properties for it
@@ -45,14 +47,14 @@ function laser:load()
    self.laserScale = 1 -- unused
    self.laserSpeed = 300
    self.physicsLaserSpeed = 50
-   self.laserDuration = 5 -- seconds
+   self.laserDuration = 1 -- seconds
    self.laserPosition = {0.0, 0.0}
    self.laserDirection = 0.0
    self.laserVelocity = {0.0, 0.0}
    self.laserDamage = 10 -- unused
 
    self.firing = false
-   self.debug = true
+
  
 end
 
@@ -70,15 +72,16 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
    self.laserBurst:setDirection(rot - (math.rad(90)))
    self.laserBurst:start()
 
-   self.laserPosition = {x+xoffset,y+yoffset}
-   self.laserDirection = rot
-   self.laserVelocity = {self.laserSpeed * math.sin(rot), 
-			 -(self.laserSpeed * math.cos(rot))}
- 
+--   self.laserPosition = {x+xoffset,y+yoffset}
+--   self.laserDirection = rot
+--   self.laserVelocity = {self.laserSpeed * math.sin(rot), 
+--			 -(self.laserSpeed * math.cos(rot))}
+			 -- 
    -- an asteroid -- change to array later
    local p = {}
+   p.duration = 0.0
    p.body = love.physics.newBody(world.world, x+xoffset, y+yoffset, "dynamic")
-   p.shape = love.physics.newRectangleShape(0, 0, laserbeamimg:getWidth(), laserbeamimg:getHeight())
+   p.shape = love.physics.newRectangleShape(0, 0, laserbeamimg:getWidth(), laserbeamimg:getHeight()) -- width should all be done at load time, so function only called once
    p.fixture = love.physics.newFixture(p.body, p.shape, 1)
 
    p.body:applyForce(self.physicsLaserSpeed * math.sin(rot), 
@@ -92,8 +95,7 @@ end
 
 function laser:movement(dt)
 
-   self.laserPosition = {(self.laserPosition[1] + (self.laserVelocity[1] * dt)), 
-			 (self.laserPosition[2] + (self.laserVelocity[2] * dt))}
+  -- self.laserPosition = {(self.laserPosition[1] + (self.laserVelocity[1] * dt)), 			 (self.laserPosition[2] + (self.laserVelocity[2] * dt))}
 
 end
 
@@ -118,33 +120,49 @@ function laser:draw()
       love.graphics.setColorMode("modulate") -- this allows color blending and fancy effects
       love.graphics.setBlendMode("additive") -- dunno what this does
       love.graphics.draw(self.laserBurst)
-      if self.elapsed < self.laserDuration then
-	 love.graphics.draw(laserbeamimg,
-			    self.laserPosition[1], self.laserPosition[2],
-			    self.laserDirection
-			   )
-      else
-	 self.elapsed = 0.0
-	 self.firing = false
-      end
+--      if self.elapsed < self.laserDuration then
+--	 love.graphics.draw(laserbeamimg,
+--			    self.laserPosition[1], self.laserPosition[2],
+--			    self.laserDirection
+--			   )
+   else
+      self.elapsed = 0.0
+      self.firing = false
    end
+
+
+   for i=#self.lasers, 1, -1 do -- must iterate backwards otherwise we index nil values due to table.remove reupdating the indices; same thing in python bad to iterate through an object you're mutating
+      if self.lasers[i].duration > self.laserDuration then
+	 self.lasers[i].body:destroy() -- make sure there isn't a memory leak or something...
+	 table.remove(self.lasers,i)
+      else
+	 local x = self.lasers[i].body:getX()
+	 local y = self.lasers[i].body:getY()
+	 local rot = self.lasers[i].body:getAngle()
+	 love.graphics.draw(laserbeamimg,
+			    x,y,
+			    rot,
+			    self.scale,self.scale,
+			    laserbeamimg:getWidth()/2, laserbeamimg:getHeight()/2)
+      end		
+   end
+
 
    if self.debug then
       
      for i=1,#self.lasers do 
 	love.graphics.polygon("fill", self.lasers[i].body:getWorldPoints(self.lasers[i].shape:getPoints()))
      end
-  --   love.graphics.setColor(0, 0, 0)
      print("# lasers: " .. #self.lasers)
-     print("l x,y: " .. self.laserPosition[1] .. " " .. self.laserPosition[2])
---     print("l dir: " .. math.deg(self.laserDirection))
---     print("l vel: " .. self.laserVelocity[1] .. " " .. self.laserVelocity[2])
    end      
 
 end
 
 function laser:update(dt)
 
+   for i=1,#self.lasers do
+      self.lasers[i].duration = self.lasers[i].duration + love.timer.getDelta ()
+   end
    self.laserBurst:update(dt)
    self:movement(dt)
    self:report()
