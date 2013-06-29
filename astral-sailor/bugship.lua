@@ -67,7 +67,6 @@ function bugship:init(x,y)
    self.maxVelocity = 100
    self.speed = 150
 
-   -- we should probably do rotational velocity, that could be fun too
    self.rot = 0.0 -- converted to radians
    self.rotSpeed = 75.0
    
@@ -86,7 +85,8 @@ function bugship:movement(dt)
    if love.keyboard.isDown("right") or love.keyboard.isDown ("d") then
       -- starboard burn
       self.state = 4
-      self.rot = math.rad((math.deg(self.rot) + (self.rotSpeed * dt)) % 360)
+      self.bugship.body:applyAngularImpulse(self.rotSpeed)
+--      self.rot = math.rad((math.deg(self.rot) + (self.rotSpeed * dt)) % 360)
       -- we need to modulo 360 the self.rot incrementation here
       -- otherwise its _possible_ to overflow a machine number, sorry i'm paranoid whatever
 
