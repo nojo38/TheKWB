@@ -37,7 +37,9 @@ function bugship:init(x,y)
    -- change to make bigger ship
    -- default 32x32 pixels
    self.scale = 2
-
+   self.width = self.imageTable[1]:getWidth() -- since all ships have same dim, first entry fine
+   self.height = self.imageTable[1]:getHeight()
+ 
    self.x = x
    self.y = y
    self.velocity = {0.0,0.0} -- velocity is a 2d vector
@@ -166,7 +168,7 @@ function bugship:draw()
       self.x, self.y, -- where
       self.rot, -- rotation to apply
       self.scale, self.scale, -- x,y scale
-      img:getWidth()/2, img:getHeight()/2) -- offset
+      self.width/2, self.height/2) -- offset
    -- last two parameters allow us to rotate about center of image
 
 end

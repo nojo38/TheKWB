@@ -1,10 +1,10 @@
 -- to think that some well aimed shame lazers started this whole thing ... wheee
--- particle system example, and traveling laser beam for fun
+-- particle system example, and _now_ laser shots using physics
 -- ~m4b
 
--- TODO: 
---  (1) allow multiple lasers to be fired (without resetting), and draw them all
---  (2) make bounce?
+-- TODO:
+--  (1) Figure out seeming random velocity sometimes for laser bullets
+
 
 laser = class:new()
 
@@ -17,6 +17,9 @@ function laser:load()
 
 --   laserburstimg = love.graphics.newImage("graphics/laser-burst.png")
    laserburstimg = love.graphics.newImage("graphics/twin-part.png")
+   self.laserburstScale = 1 
+   self.laserburstWidth = laserburstimg:getWidth()
+   self.laserburstHeight = laserburstimg:getHeight()
    -- laser burst: set bunch of properties for it
    self.laserBurst = love.graphics.newParticleSystem(laserburstimg, 10)
    self.laserBurst:setLifetime(1)
@@ -43,14 +46,12 @@ function laser:load()
 
    -- laser beam properties
    laserbeamimg = love.graphics.newImage("graphics/laser-beam.png")
-   self.elapsed = 0.0
-   self.laserScale = 1 -- unused
-   self.laserSpeed = 300
+   self.laserbeamScale = 1
+   self.laserbeamWidth = laserbeamimg:getWidth()
+   self.laserbeamHeight = laserbeamimg:getHeight()
    self.physicsLaserSpeed = 50
    self.laserDuration = 1 -- seconds
-   self.laserPosition = {0.0, 0.0}
    self.laserDirection = 0.0
-   self.laserVelocity = {0.0, 0.0}
    self.laserDamage = 10 -- unused
 
    self.firing = false
@@ -72,18 +73,15 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
    self.laserBurst:setDirection(rot - (math.rad(90)))
    self.laserBurst:start()
 
---   self.laserPosition = {x+xoffset,y+yoffset}
---   self.laserDirection = rot
---   self.laserVelocity = {self.laserSpeed * math.sin(rot), 
---			 -(self.laserSpeed * math.cos(rot))}
-			 -- 
-   -- an asteroid -- change to array later
+   -- table of laser shots
    local p = {}
    p.duration = 0.0
    p.body = love.physics.newBody(world.world, x+xoffset, y+yoffset, "dynamic")
-   p.shape = love.physics.newRectangleShape(0, 0, laserbeamimg:getWidth(), laserbeamimg:getHeight()) -- width should all be done at load time, so function only called once
+   p.shape = love.physics.newRectangleShape(0, 0, self.laserbeamWidth, self.laserbeamHeight)
    p.fixture = love.physics.newFixture(p.body, p.shape, 1)
 
+   -- MAJOR:
+   -- need to figure out why bullets seem to have random force
    p.body:applyForce(self.physicsLaserSpeed * math.sin(rot), 
 		     -(self.physicsLaserSpeed * math.cos(rot)))
 
@@ -93,45 +91,35 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
 
 end
 
-function laser:movement(dt)
-
-  -- self.laserPosition = {(self.laserPosition[1] + (self.laserVelocity[1] * dt)), 			 (self.laserPosition[2] + (self.laserVelocity[2] * dt))}
-
-end
-
 function laser:report()
+
 
    if self.debug then
       print("x,y: " .. self.laserBurst:getX() .. " " .. self.laserBurst:getY())
       print("rot: " .. self.laserBurst:getDirection())
       print("number: " .. self.laserBurst:count())
       print("spread: " .. self.laserBurst:getSpread())
-      print("l x,y: " .. self.laserPosition[1] .. " " .. self.laserPosition[2])
+--      print("l x,y: " .. self.laserPosition[1] .. " " .. self.laserPosition[2])
       print("l dir: " .. math.deg(self.laserDirection))
-      print("l vel: " .. self.laserVelocity[1] .. " " .. self.laserVelocity[2])
+--      print("l vel: " .. self.laserVelocity[1] .. " " .. self.laserVelocity[2])
       print("ship dir: " .. bugship.rot)
+      print("# lasers: " .. #self.lasers)
    end
 end
 
 function laser:draw()
    
    if self.firing then 
-      self.elapsed = self.elapsed + love.timer.getDelta()
       love.graphics.setColorMode("modulate") -- this allows color blending and fancy effects
       love.graphics.setBlendMode("additive") -- dunno what this does
       love.graphics.draw(self.laserBurst)
---      if self.elapsed < self.laserDuration then
---	 love.graphics.draw(laserbeamimg,
---			    self.laserPosition[1], self.laserPosition[2],
---			    self.laserDirection
---			   )
    else
-      self.elapsed = 0.0
       self.firing = false
    end
 
 
-   for i=#self.lasers, 1, -1 do -- must iterate backwards otherwise we index nil values due to table.remove reupdating the indices; same thing in python bad to iterate through an object you're mutating
+   for i=#self.lasers, 1, -1 do -- must iterate backwards otherwise we index nil values due to table.remove reupdating the indices;
+-- same thing in python: bad to iterate through an object you are mutating
       if self.lasers[i].duration > self.laserDuration then
 	 self.lasers[i].body:destroy() -- make sure there isn't a memory leak or something...
 	 table.remove(self.lasers,i)
@@ -142,18 +130,16 @@ function laser:draw()
 	 love.graphics.draw(laserbeamimg,
 			    x,y,
 			    rot,
-			    self.scale,self.scale,
-			    laserbeamimg:getWidth()/2, laserbeamimg:getHeight()/2)
+			    self.laserbeamScale,self.laserbeamScale,
+			    self.laserbeamWidth/2, self.laserbeamHeight/2)
       end		
    end
-
 
    if self.debug then
       
      for i=1,#self.lasers do 
 	love.graphics.polygon("fill", self.lasers[i].body:getWorldPoints(self.lasers[i].shape:getPoints()))
      end
-     print("# lasers: " .. #self.lasers)
    end      
 
 end
@@ -164,7 +150,6 @@ function laser:update(dt)
       self.lasers[i].duration = self.lasers[i].duration + love.timer.getDelta ()
    end
    self.laserBurst:update(dt)
-   self:movement(dt)
    self:report()
 
 end
