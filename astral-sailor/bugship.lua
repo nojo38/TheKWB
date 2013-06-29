@@ -1,5 +1,6 @@
 -- simple example class for initializing, updating, drawing, etc., for the bugship
 -- ... with lots of comments
+-- ... and now physics!
 -- ~m4b
 
 -- TODO:
@@ -65,7 +66,7 @@ function bugship:init(x,y)
    self.bugship.fixture = love.physics.newFixture(self.bugship.body, self.bugship.shape, 4)
 
    self.bugship.fixture:setRestitution(0.3) -- ship is not very bouncy
-   self.bugship.body:setFixedRotation(true) -- ship is not very bouncy
+--   self.bugship.body:setFixedRotation(true) -- ship is not very bouncy
 
 -- =====================
 
@@ -89,16 +90,13 @@ function bugship:movement(dt)
    if love.keyboard.isDown("right") or love.keyboard.isDown ("d") then
       -- starboard burn
       self.state = 4
---      self.bugship.body:applyTorque(self.rotSpeed)
---      self.bugship.body:applyAngularImpulse(self.rotSpeed * dt)
+      -- this is for more "natural" but unrealistic rotation we all know and love; i.e., no angular velocity, so easier to handle
       local rot = self.bugship.body:getAngle()
       self.bugship.body:setAngle(rot + (self.rotSpeed * dt))
 
    elseif love.keyboard.isDown("left") or love.keyboard.isDown("a")then
       -- port burn
       self.state = 5
---      self.bugship.body:applyTorque(-self.rotSpeed)
---      self.bugship.body:applyAngularImpulse(-self.rotSpeed * dt)
       local rot = self.bugship.body:getAngle()
       self.bugship.body:setAngle(rot - (self.rotSpeed * dt))
 
@@ -111,8 +109,6 @@ function bugship:movement(dt)
       local xrotfactor = math.sin(rot)
       local yrotfactor = math.cos(rot)
       self.bugship.body:applyForce(-self.speed * xrotfactor,self.speed * yrotfactor)
---      self.velocity[1] = self.velocity[1] - (self.speed * dt * math.sin(self.rot))
---      self.velocity[2] = self.velocity[2] + (self.speed * dt * math.cos(self.rot))
 
    elseif love.keyboard.isDown("up") or love.keyboard.isDown("w") then
       -- stern burn
@@ -121,13 +117,10 @@ function bugship:movement(dt)
       local xrotfactor = math.sin(rot)
       local yrotfactor = math.cos(rot)
       self.bugship.body:applyForce(self.speed * xrotfactor,-self.speed * yrotfactor)
---      self.velocity[1] = self.velocity[1] + (self.speed * dt * math.sin(self.rot))
---      self.velocity[2] = self.velocity[2] - (self.speed * dt * math.cos(self.rot))
       -- we switch signs for afterburner
    end
 
    if self.state == 3 or self.state == 2 then
-      -- add some brownian motion if we're thrusting
       -- no brownian motion; need to setX, etc.
 --      self.x = self.x + math.random(-0.5,0.5)
 --      self.y = self.y + math.random(-0.5,0.5)
