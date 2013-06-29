@@ -8,9 +8,6 @@
 
 laser = class:new()
 
-systems = {}
-current = 1
-
 function laser:load()
 
    self.debug = false
@@ -40,7 +37,6 @@ function laser:load()
 --   self.laserBurst:setRadialAcceleration(-2000)
 --   self.laserBurst:setTangentialAcceleration(1000) 
    self.laserBurst:stop()
-   table.insert(systems, self.laserBurst) -- unused
 
    self.lasers = {}
 

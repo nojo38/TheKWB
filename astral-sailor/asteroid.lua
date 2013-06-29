@@ -2,58 +2,72 @@ asteroid = class:new()
 
 function asteroid:init()
 
+   self.debug = false
    -- asteroid
    asteroidImg = love.graphics.newImage("graphics/asteroid.png")
+   self.width = asteroidImg:getWidth()
+   self.height = asteroidImg:getHeight()
    -- table of asteroids
    self.asteroids = {}
-   -- an asteroid -- change to array later
-   self.asteroids.a1 = {}
-   self.asteroids.a1.body = love.physics.newBody(world.world, world.width/2, world.height/2, "dynamic") --remember, the shape (the rectangle we create next) anchors to the body from its center, so we have to move it to (650/2, 650-50/2)
-   self.asteroids.a1.shape = love.physics.newCircleShape(8) -- radius should be 8, but 16 working...
-   self.asteroids.a1.fixture = love.physics.newFixture(self.asteroids.a1.body, self.asteroids.a1.shape, 1) --attach shape to body
+   self.scale = 1
 
-  self.asteroids.a1.fixture:setRestitution(0.9) --let the ball bounce
+   self.numAsteroids = math.random(20)
 
-  self.asteroids.a1.body:applyForce(math.random(-300,300),math.random(-300,300))
---  self.asteroids.a1.body:applyForce(-100,-100)
---   self.asteroids.a1.body:applyTorque(4000)
-  self.asteroids.a1.body:applyAngularImpulse(100)
---math.random(-200,200),math.random(-200,200))
+   for i=1, self.numAsteroids do
+      local p = {}
+      local x = math.random(8,792)
+      local y = math.random(8,592)
 
-  self.debug = false
-  self.scale = 1
+      p.body = love.physics.newBody(world.world, x, y, "dynamic")
+      p.shape = love.physics.newCircleShape(8) -- radius of 8
+      p.fixture = love.physics.newFixture(p.body, p.shape, 1) --attach shape to body
+
+      p.fixture:setRestitution(0.9) --let the ball bounce
+
+      p.body:applyForce(math.random(-300,300),math.random(-300,300))
+      p.body:applyAngularImpulse(math.random(-100,100))
+
+      table.insert(self.asteroids, p)
+   end
+
+
 
 end
 
 function asteroid:draw()
 
-   local rot = self.asteroids.a1.body:getAngle()
-   local rad = self.asteroids.a1.shape:getRadius()
-   local x = self.asteroids.a1.body:getX()
-   local y = self.asteroids.a1.body:getY()
 
-  love.graphics.draw(asteroidImg,
-     x, y,
-     rot,
-     self.scale, self.scale,
-     asteroidImg:getWidth()/2, asteroidImg:getHeight()/2)
+   for i=1,#self.asteroids do
+      local rot = self.asteroids[i].body:getAngle()
+      local rad = self.asteroids[i].shape:getRadius()
+      local x = self.asteroids[i].body:getX()
+      local y = self.asteroids[i].body:getY()
+
+      love.graphics.draw(asteroidImg,
+			 x, y,
+			 rot,
+			 self.scale, self.scale,
+			 self.width/2, self.height/2)
   
-  if self.debug then 
-     local x2 = x + (math.cos (rot) * rad)
-     local y2 = y + (math.sin (rot) * rad)
-     love.graphics.circle("fill", x, y, rad)
-     love.graphics.setColor(0, 0, 0)
-     love.graphics.line(x, y, x2, y2)
-  end
+      if self.debug then 
+	 local x2 = x + (math.cos (rot) * rad)
+	 local y2 = y + (math.sin (rot) * rad)
+	 love.graphics.circle("fill", x, y, rad)
+	 love.graphics.setColor(0, 0, 0)
+	 love.graphics.line(x, y, x2, y2)
+      end
+
+   end
 
 end
 
 function asteroid:update(dt)
 
    if self.debug then
-      print ("asteroid x,y: " .. self.asteroids.a1.body:getX() .. " " ..
-	     self.asteroids.a1.body:getY())
-      print ("asteroid rot: " .. self.asteroids.a1.body:getAngle() % 360)
+      print ("# asteroids: " .. #self.asteroids)
+--      print ("asteroid x,y: " .. p.body:getX() .. " " ..
+--	     p.body:getY())
+--      print ("asteroid rot: " .. math.rad(.body:getAngle()) % 360)
 
    end
 
