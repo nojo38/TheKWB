@@ -6,15 +6,17 @@ function love.load()
    require "world"
    require "asteroid"
 
-   -- start the bugship in the middle
+   -- set font for FPS
+   font = love.graphics.newFont(love._vera_ttf, 10)
+   love.graphics.setFont(font)
+   love.graphics.setColor(200, 200, 200);
 
    world:init() -- initialize world
    asteroid:init()
-   bugship:init(400,300)
+   bugship:init(400,300) -- start the bugship in the middle
    laser:load()
 
-   bg = love.graphics.newImage("graphics/star-background.png")
-   
+   bg = love.graphics.newImage("graphics/star-background.png")   
 
 end
 
@@ -25,6 +27,8 @@ function love.draw(dt)
    laser:draw()
    asteroid:draw()
    world:draw() -- unused
+
+   love.graphics.print("FPS: " .. love.timer.getFPS(), 0, 0);
 
 end
 
