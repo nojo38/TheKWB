@@ -49,7 +49,7 @@ function laser:load()
    self.laserbeamScale = 1
    self.laserbeamWidth = laserbeamimg:getWidth()
    self.laserbeamHeight = laserbeamimg:getHeight()
-   self.physicsLaserSpeed = 50
+   self.physicsLaserSpeed = 1
    self.laserDuration = 1 -- seconds
    self.laserDirection = 0.0
    self.laserDamage = 10 -- unused
@@ -80,9 +80,9 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
    p.shape = love.physics.newRectangleShape(0, 0, self.laserbeamWidth, self.laserbeamHeight)
    p.fixture = love.physics.newFixture(p.body, p.shape, 1)
 
-   -- MAJOR:
-   -- need to figure out why bullets seem to have random force
-   p.body:applyForce(self.physicsLaserSpeed * math.sin(rot), 
+   -- using applyLinearImpulse seems to solve problem of random velocities
+   -- I believe this is correct concept to use for a laser bullet anyway
+   p.body:applyLinearImpulse(self.physicsLaserSpeed * math.sin(rot), 
 		     -(self.physicsLaserSpeed * math.cos(rot)))
 
    p.fixture:setRestitution(0.5) -- bouncy

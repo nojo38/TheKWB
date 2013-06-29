@@ -2,13 +2,17 @@
 -- ... with lots of comments
 -- ~m4b
 
+-- TODO:
+-- 1) remove old non-physics detritus
+-- 2) make static physics bodies for parts of ship not accounted for (but only for final version of an art model, otherwise waste of time)
+
 bugship = class:new()
 
 require "laser"
 
 function bugship:init(x,y)
 
-   self.debug = true
+   self.debug = false
 
    self.imageList = {"bug-ship", 
    		     "bug-ship-afterburn",
@@ -37,7 +41,7 @@ function bugship:init(x,y)
    self.elapsed = 0
    -- change to make bigger ship
    -- default 32x32 pixels
-   self.scale = 2
+   self.scale = 2 -- need to figure out why this doesn't need to be accounted for in the getWidth, etc., cases
    self.width = self.imageTable[1]:getWidth() -- since all ships have same dim, we'll use first entry in table
    self.height = self.imageTable[1]:getHeight()
  
@@ -49,6 +53,8 @@ function bugship:init(x,y)
    self.bugship = {} 
    self.bugship.body = love.physics.newBody(world.world, world.width/2, world.height/2, "dynamic")
    -- still unsure why scaling not seeming to take into account some things...
+   -- we're building a triangle, facing up
+   -- a tapering rectangle would fit the object better, change to that soon
    local x1 = 0
    local y1 = - ((self.height) / 2) -- because pointing "north" is reverse for love coords
    local x2 = - (( self.width) / 2)
@@ -59,21 +65,19 @@ function bugship:init(x,y)
    self.bugship.fixture = love.physics.newFixture(self.bugship.body, self.bugship.shape, 4)
 
    self.bugship.fixture:setRestitution(0.3) -- ship is not very bouncy
+   self.bugship.body:setFixedRotation(true) -- ship is not very bouncy
 
 -- =====================
 
 -- REMOVE ALL FOR PHYSICS
-   self.velocity = {0.0,0.0} -- velocity is a 2d vector
-   self.maxVelocity = 100
-   self.speed = 150
+   self.speed = 100
 
    self.rot = 0.0 -- converted to radians
-   self.rotSpeed = 75.0
+   self.rotSpeed = 2
    
    -- are we idle or burning engines, etc.?
    -- 1-5, same as image index
    self.state = 1
-   self.bouncing = false -- are we bouncing?
 
 end
 
@@ -85,41 +89,49 @@ function bugship:movement(dt)
    if love.keyboard.isDown("right") or love.keyboard.isDown ("d") then
       -- starboard burn
       self.state = 4
-      self.bugship.body:applyAngularImpulse(self.rotSpeed)
---      self.rot = math.rad((math.deg(self.rot) + (self.rotSpeed * dt)) % 360)
-      -- we need to modulo 360 the self.rot incrementation here
-      -- otherwise its _possible_ to overflow a machine number, sorry i'm paranoid whatever
+--      self.bugship.body:applyTorque(self.rotSpeed)
+--      self.bugship.body:applyAngularImpulse(self.rotSpeed * dt)
+      local rot = self.bugship.body:getAngle()
+      self.bugship.body:setAngle(rot + (self.rotSpeed * dt))
 
    elseif love.keyboard.isDown("left") or love.keyboard.isDown("a")then
       -- port burn
       self.state = 5
-      self.rot = math.rad((math.deg(self.rot) - (self.rotSpeed * dt)) % 360)
+--      self.bugship.body:applyTorque(-self.rotSpeed)
+--      self.bugship.body:applyAngularImpulse(-self.rotSpeed * dt)
+      local rot = self.bugship.body:getAngle()
+      self.bugship.body:setAngle(rot - (self.rotSpeed * dt))
+
    end
 
    if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
       -- bow burn
       self.state = 3
-      self.velocity[1] = self.velocity[1] - (self.speed * dt * math.sin(self.rot))
-      self.velocity[2] = self.velocity[2] + (self.speed * dt * math.cos(self.rot))
+      local rot = self.bugship.body:getAngle()
+      local xrotfactor = math.sin(rot)
+      local yrotfactor = math.cos(rot)
+      self.bugship.body:applyForce(-self.speed * xrotfactor,self.speed * yrotfactor)
+--      self.velocity[1] = self.velocity[1] - (self.speed * dt * math.sin(self.rot))
+--      self.velocity[2] = self.velocity[2] + (self.speed * dt * math.cos(self.rot))
 
    elseif love.keyboard.isDown("up") or love.keyboard.isDown("w") then
       -- stern burn
       self.state = 2
-      self.velocity[1] = self.velocity[1] + (self.speed * dt * math.sin(self.rot))
-      self.velocity[2] = self.velocity[2] - (self.speed * dt * math.cos(self.rot))
+      local rot = self.bugship.body:getAngle()
+      local xrotfactor = math.sin(rot)
+      local yrotfactor = math.cos(rot)
+      self.bugship.body:applyForce(self.speed * xrotfactor,-self.speed * yrotfactor)
+--      self.velocity[1] = self.velocity[1] + (self.speed * dt * math.sin(self.rot))
+--      self.velocity[2] = self.velocity[2] - (self.speed * dt * math.cos(self.rot))
       -- we switch signs for afterburner
    end
 
-   -- update location
-   self.x = self.x + (self.velocity[1] * dt)
-   self.y = self.y + (self.velocity[2] * dt)
    if self.state == 3 or self.state == 2 then
-       -- add some brownian motion if we're thrusting
-      self.x = self.x + math.random(-0.5,0.5)
-      self.y = self.y + math.random(-0.5,0.5)
+      -- add some brownian motion if we're thrusting
+      -- no brownian motion; need to setX, etc.
+--      self.x = self.x + math.random(-0.5,0.5)
+--      self.y = self.y + math.random(-0.5,0.5)
    end
-
-   self:boundsCheck(self.x, self.y)
 
 end
 
@@ -130,37 +142,17 @@ function bugship:getImg()
    return self.imageTable[self.state]
 end
 
-function bugship:boundsCheck(x,y)
-
-   -- make hardcoded 800, 600 world readable values world.width, etc.
-   -- i.e., we need a global module which gives game state stats
-   -- need to only change the sign once, have it float back after that
-
-   -- still a bug here; if going fast enough y can switch bouncing to true
-   -- then x boundaries crossed, and x not caught
-   -- dumb solution: two switches, one for each boundary
-   if (x <= 0 or x >= 800) and not self.bouncing then
-      self.velocity[1] = -self.velocity[1]
-      self.bouncing = true
-   elseif
-      (y <= 0 or y >= 600) and not self.bouncing then
-      self.velocity[2] = -self.velocity[2]
-      self.bouncing = true
-   else
-      self.bouncing = false
-   end
-
-end
-
-
 -- debug stats
 function bugship:report()
    if self.debug then
+      print ("angular damping: " .. self.bugship.body:getAngularDamping())
+      print ("linear damping: " .. self.bugship.body:getLinearDamping())
       print ("time: " .. self.elapsed)
       print ("state: " .. self.state)
       print ("x: " .. self.x)
       print ("y: " .. self.y)
-      print ("velocity: " .. self.velocity[1] .. "," .. self.velocity[2])
+      local dx,dy = self.bugship.body:getLinearVelocity()
+      print ("velocity: " .. dx .. "," .. dy)
       print ("speed: " .. self.speed)
       print ("rotation: " .. math.deg(self.rot))
       print ("rot speed: " .. self.rotSpeed)
@@ -171,8 +163,10 @@ function love.keypressed(key)
 
       if key == "f" or key == " " then
 	 laser.firing = true
-	 -- ADD BUGSHIP PHYSICS COORDS HERE
-	 laser:init(bugship.x, bugship.y, bugship.rot)
+	 local x = bugship.bugship.body:getX()
+	 local y = bugship.bugship.body:getY()
+	 local rot = bugship.bugship.body:getAngle()
+	 laser:init(x, y, rot)
 	 laser:report()
       end
 
@@ -206,5 +200,6 @@ end
 function bugship:update(dt)
 
    self:movement(dt)
+   self:report()
 
 end
