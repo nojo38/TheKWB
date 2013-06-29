@@ -24,7 +24,7 @@ function love.draw(dt)
    bugship:draw()
    laser:draw()
    asteroid:draw()
-   world:draw()
+   world:draw() -- unused
 
 end
 

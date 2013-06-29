@@ -8,6 +8,8 @@ require "laser"
 
 function bugship:init(x,y)
 
+   self.debug = true
+
    self.imageList = {"bug-ship", 
    		     "bug-ship-afterburn",
 		     "bug-ship-forwardburn",
@@ -31,17 +33,36 @@ function bugship:init(x,y)
       if self.debug then print ("bugship image " .. i .. " is:" .. dimx .. "x" .. dimy) end
    end
    
-   self.debug = false
    -- used for simple timer
    self.elapsed = 0
    -- change to make bigger ship
    -- default 32x32 pixels
    self.scale = 2
-   self.width = self.imageTable[1]:getWidth() -- since all ships have same dim, first entry fine
+   self.width = self.imageTable[1]:getWidth() -- since all ships have same dim, we'll use first entry in table
    self.height = self.imageTable[1]:getHeight()
  
    self.x = x
    self.y = y
+
+-- ====== PHYSICS ======
+
+   self.bugship = {} 
+   self.bugship.body = love.physics.newBody(world.world, world.width/2, world.height/2, "dynamic")
+   -- still unsure why scaling not seeming to take into account some things...
+   local x1 = 0
+   local y1 = - ((self.height) / 2) -- because pointing "north" is reverse for love coords
+   local x2 = - (( self.width) / 2)
+   local y2 = (( self.height) / 2)
+   local x3 = ( self.width) / 2
+   local y3 = (( self.height) / 2)
+   self.bugship.shape = love.physics.newPolygonShape(x1,y1,x2,y2,x3,y3) --- must be convex!
+   self.bugship.fixture = love.physics.newFixture(self.bugship.body, self.bugship.shape, 4)
+
+   self.bugship.fixture:setRestitution(0.3) -- ship is not very bouncy
+
+-- =====================
+
+-- REMOVE ALL FOR PHYSICS
    self.velocity = {0.0,0.0} -- velocity is a 2d vector
    self.maxVelocity = 100
    self.speed = 150
@@ -100,7 +121,6 @@ function bugship:movement(dt)
 
    self:boundsCheck(self.x, self.y)
 
-
 end
 
 function bugship:getImg()
@@ -151,6 +171,7 @@ function love.keypressed(key)
 
       if key == "f" or key == " " then
 	 laser.firing = true
+	 -- ADD BUGSHIP PHYSICS COORDS HERE
 	 laser:init(bugship.x, bugship.y, bugship.rot)
 	 laser:report()
       end
@@ -163,6 +184,9 @@ function bugship:draw()
    self.elapsed = self.elapsed + love.timer.getDelta()
 
    local img = self:getImg()
+   self.rot = self.bugship.body:getAngle()
+   self.x = self.bugship.body:getX()
+   self.y = self.bugship.body:getY()
 
    love.graphics.draw(img, -- what image we draw
       self.x, self.y, -- where
@@ -171,11 +195,16 @@ function bugship:draw()
       self.width/2, self.height/2) -- offset
    -- last two parameters allow us to rotate about center of image
 
+   if self.debug then
+
+      love.graphics.polygon("fill", self.bugship.body:getWorldPoints(self.bugship.shape:getPoints()))
+
+  end
+
 end
 
 function bugship:update(dt)
 
    self:movement(dt)
-   self:report()
 
 end

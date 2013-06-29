@@ -8,7 +8,7 @@ function asteroid:init()
    self.asteroids = {}
    -- an asteroid -- change to array later
    self.asteroids.a1 = {}
-   self.asteroids.a1.body = love.physics.newBody(world.world, world.dimx/2, world.dimy/2, "dynamic") --remember, the shape (the rectangle we create next) anchors to the body from its center, so we have to move it to (650/2, 650-50/2)
+   self.asteroids.a1.body = love.physics.newBody(world.world, world.width/2, world.height/2, "dynamic") --remember, the shape (the rectangle we create next) anchors to the body from its center, so we have to move it to (650/2, 650-50/2)
    self.asteroids.a1.shape = love.physics.newCircleShape(8) -- radius should be 8, but 16 working...
    self.asteroids.a1.fixture = love.physics.newFixture(self.asteroids.a1.body, self.asteroids.a1.shape, 1) --attach shape to body
 
