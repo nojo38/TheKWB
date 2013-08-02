@@ -66,6 +66,7 @@ function bugship:init(x,y)
    self.bugship.fixture = love.physics.newFixture(self.bugship.body, self.bugship.shape, 4)
 
    self.bugship.fixture:setRestitution(0.3) -- ship is not very bouncy
+   self.bugship.fixture:setUserData("bugship")
    self.bugship.body:setFixedRotation(true) -- we need this to behave in the "natural" (unrealistic) manner; hackish, however
 
 -- =====================

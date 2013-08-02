@@ -22,7 +22,8 @@ function asteroid:init()
       p.shape = love.physics.newCircleShape(8) -- radius of 8
       p.fixture = love.physics.newFixture(p.body, p.shape, 1) --attach shape to body
 
-      p.fixture:setRestitution(0.9) --let the ball bounce
+      p.fixture:setRestitution(0.9) -- bouncy asteroids
+      p.fixture:setUserData("asteroid" .. i)
 
       p.body:applyForce(math.random(-300,300),math.random(-300,300))
       p.body:applyAngularImpulse(math.random(-100,100))

@@ -1,3 +1,3 @@
-package : astral-sailor
-	cd astral-sailor; zip -r ../astral.love * 
+package : src
+	cd src; zip -r ../astral.love * 
 

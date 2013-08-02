@@ -3,7 +3,7 @@
 -- ~m4b
 
 -- TODO:
---  (1) Figure out seeming random velocity sometimes for laser bullets
+--  (1) learn physics callbacks for fancy effects
 
 
 laser = class:new()
@@ -82,7 +82,9 @@ function laser:init(x,y,rot) -- bugships x,y coords, and rotation
 		     -(self.physicsLaserSpeed * math.cos(rot)))
 
    p.fixture:setRestitution(0.5) -- bouncy
-
+   -- ERROR: WILL NOT WORK, laser IDS change because table is mutated
+   -- can use stack for unique id, like OCaml VM 
+   p.fixture:setUserData("laser" .. (#self.lasers + 1))
    table.insert(self.lasers, p)
 
 end
@@ -147,5 +149,13 @@ function laser:update(dt)
    end
    self.laserBurst:update(dt)
    self:report()
+
+end
+
+function laser:endContact(laser, b, coll,i)
+
+-- bah, numbering lasers won't work, because array changes, need pid or unique id
+   print ("i: " .. i)
+   print (laser .. " contacting " .. b)
 
 end
